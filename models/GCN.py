@@ -36,7 +36,7 @@ class GCNNetwork(nn.Module):
         self.layers.append(GCNConv(hidden_channels, out_channels, heads=1))
 
     def forward(self, x, edge_index):
-        for i in range(0, len(self.layers) - 1, 3):
+        for i in range(0, len(self.layers) - 1, 4):
             x = self.layers[i](x, edge_index)  # apply GCNConv
             x = self.layers[i + 1](x)  # layer norm
             x = self.layers[i + 2](x)  # dropout

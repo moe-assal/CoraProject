@@ -38,7 +38,7 @@ class GATNetwork(nn.Module):
         self.layers.append(GATConv(hidden_channels * num_heads, out_channels, heads=1))
 
     def forward(self, x, edge_index):
-        for i in range(0, len(self.layers) - 1, 3):
+        for i in range(0, len(self.layers) - 1, 4):
             x = self.layers[i](x, edge_index)  # apply GATConv
             x = self.layers[i + 1](x)  # layer norm
             x = self.layers[i + 2](x)  # dropout
