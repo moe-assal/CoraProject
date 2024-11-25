@@ -3,9 +3,6 @@ from torch_geometric.nn import GAT
 
 
 class GATNetwork(nn.Module):
-    hidden_size = 10
-    head_num = 4
-    output_mlp_layers = 2
 
     def __init__(self, in_channels, out_channels, **kwargs):
         super(GATNetwork, self).__init__()
@@ -21,7 +18,7 @@ class GATNetwork(nn.Module):
         self.layers = nn.ModuleList()
 
         # input layer
-        self.layers.append(GAT(in_channels, hidden_channels, heads=num_heads))
+        self.layers.append(GAT(in_channels, hidden_channels, heads=num_heads, num_layers=1))
         if layer_norm:
             self.layers.append(nn.LayerNorm(hidden_channels * num_heads))  # Because of multi-head, output size is num_heads * hidden_channels
         if dropout:
@@ -30,7 +27,7 @@ class GATNetwork(nn.Module):
 
         # hidden layers: GATv2Conv + LayerNorm + Dropout
         for _ in range(num_layers - 2):
-            self.layers.append(GAT(hidden_channels * num_heads, hidden_channels, heads=num_heads))
+            self.layers.append(GAT(hidden_channels * num_heads, hidden_channels, heads=num_heads, num_layers=1))
             if layer_norm:
                 self.layers.append(nn.LayerNorm(hidden_channels * num_heads))
             if dropout:
@@ -38,7 +35,7 @@ class GATNetwork(nn.Module):
             self.layers.append(activation())
 
         # final layer: GATv2Conv (without multiple heads)
-        self.layers.append(GAT(hidden_channels * num_heads, out_channels, heads=1))
+        self.layers.append(GAT(hidden_channels * num_heads, out_channels, heads=1, num_layers=1))
 
     def forward(self, x, edge_index):
         for i in range(0, len(self.layers) - 1, 3):
