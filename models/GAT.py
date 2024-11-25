@@ -42,7 +42,7 @@ class GATNetwork(nn.Module):
             x = self.layers[i](x, edge_index)  # apply GATConv
             x = self.layers[i + 1](x)  # layer norm
             x = self.layers[i + 2](x)  # dropout
-            x - self.layers[i + 3](x) # activation
+            x = self.layers[i + 3](x) # activation
 
         # Final output layer (no activation or dropout)
         x = self.layers[-1](x, edge_index)
