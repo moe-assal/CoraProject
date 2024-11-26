@@ -8,8 +8,7 @@ def node2vec_transform(data: Data, embedding_dim=128, walk_length=10, context_si
                       epochs=100, lr=0.01):
     print("Applying Node2Vec transformation...")
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    data = data.to(device)
+    data = data.cpu()
 
     # Initialize Node2Vec
     node2vec = Node2Vec(
@@ -20,7 +19,7 @@ def node2vec_transform(data: Data, embedding_dim=128, walk_length=10, context_si
         walks_per_node=walks_per_node,
         num_negative_samples=num_negative_samples,
         sparse=True
-    ).to(device)
+    )
 
     # Train Node2Vec
     optimizer = torch.optim.SparseAdam(node2vec.parameters(), lr=lr)
@@ -28,7 +27,7 @@ def node2vec_transform(data: Data, embedding_dim=128, walk_length=10, context_si
     def train():
         node2vec.train()
         for epoch in range(epochs):
-            perm = torch.randperm(data.num_nodes, device=device)
+            perm = torch.randperm(data.num_nodes)
             total_loss = 0
             for i in range(0, data.num_nodes, 128):  # Batch size = 128
                 batch = perm[i: i + 128]
@@ -43,7 +42,7 @@ def node2vec_transform(data: Data, embedding_dim=128, walk_length=10, context_si
             print(f"Epoch {epoch + 1}/{epochs}, Loss: {total_loss:.4f}")
 
     train()
-    data.n2v = node2vec(torch.arange(data.num_nodes, device=device)).cpu()
+    data.n2v = node2vec(torch.arange(data.num_nodes))
 
     return data
 
