@@ -1,10 +1,9 @@
+- files to create (outputs are tables, use seeding):
+  - Focal vs weighted sampler vs normal sampling comparison across models
+  - edge dropout and node dropout comparison across models
+  - node2vec comparison across models
 
-Comparisons:
-- Choose best model from below (grid-search OR random search)
-  - Different models and their hyper-parameters
-  - node2vec and without n2v
-  - regularization and scheduler
-
-- Tune it via the following:
-  - Class imbalance (Focal loss; weighted sampler; normal sampling)
-  - Data augmentation (Edge dropout, node dropout)
+- Based on the above tables, create the best-model in each model class
+- train and save
+- compare using F1-score and Confusion matrices
+- create an interface to the models (loaded from a file)
