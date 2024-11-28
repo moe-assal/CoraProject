@@ -10,7 +10,6 @@ class FocalLoss(nn.Module):
     Args:
         alpha (float, optional): Weighting factor for the positive class. Default is 1.0.
         gamma (float, optional): Focusing parameter to down-weight easy examples. Default is 2.0.
-        reduction (str, optional): Specifies the reduction to apply ('none', 'mean', 'sum'). Default is 'mean'.
     """
 
     def __init__(self, alpha=1.0, gamma=2.0):
