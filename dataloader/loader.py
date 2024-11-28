@@ -38,8 +38,8 @@ def weighted_sampler(batch_size, mode, pre_transform=None):
 
 
 
-def sample(batch_size, mode, transform=None):
-    dataset = Planetoid(root="./data/Cora", name="Cora", transform=transform)
+def sample(batch_size, mode, pre_transform=None):
+    dataset = Planetoid(root="./data/Cora", name="Cora", pre_transform=pre_transform)
     data = dataset[0]
     print(data.n2v)
 
