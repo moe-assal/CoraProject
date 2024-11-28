@@ -16,6 +16,10 @@ class GNNTrainer:
         self.criterion = torch.nn.CrossEntropyLoss()
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, weight_decay=5e-4)
 
+        self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            self.optimizer, mode="max", factor=0.5, patience=5,
+        )
+
     def train_one_epoch(self):
         """
         Trains the model for one epoch and returns the average loss.
@@ -76,6 +80,8 @@ class GNNTrainer:
 
             print(f"Epoch {epoch:03d} | Train Loss: {train_loss:.4f} | "
                   f"Val Loss: {val_loss:.4f} | Val Accuracy: {val_acc:.4f}")
+
+            self.scheduler.step(val_acc)
 
             # Save the best model
             if val_acc > best_val_acc:
