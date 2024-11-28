@@ -48,8 +48,11 @@ class JumpingKnowledge(nn.Module):
             act=self.act
         )
 
-    def forward(self, x, edge_index):
+    def forward(self, batch):
         # Collect outputs from all GCN layers for jumping knowledge
+        x, edge_index, n2v, batch_size = batch.x, batch.edge_index, batch.n2v, batch.batch_size
+        x = torch.cat([x, n2v], dim=1)
+
         pre_mlp_x = [x]
         for i in range(len(self.gnn_layers)):
             x = self.gnn_layers[i](x, edge_index)
@@ -62,6 +65,6 @@ class JumpingKnowledge(nn.Module):
 
         # Concatenate layer outputs and pass through MLP
         x_concat = torch.cat(pre_mlp_x, dim=1)
-        x_out = self.mlp(x_concat)
+        x_out = self.mlp(x_concat)[:batch_size]
 
         return torch.softmax(x_out, dim=1)  # Output probabilities

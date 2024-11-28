@@ -52,7 +52,10 @@ class GCNNetwork(nn.Module):
             act=activation()
         )
 
-    def forward(self, x, edge_index):
+    def forward(self, batch):
+        x, edge_index, n2v, batch_size = batch.x, batch.edge_index, batch.n2v, batch.batch_size
+        x = torch.cat([x, n2v], dim=1)
+
         for i in range(len(self.gnn_layers) - 1):
             x = self.gnn_layers[i](x, edge_index)
             if self.norm_layers:
@@ -65,5 +68,5 @@ class GCNNetwork(nn.Module):
         x = self.gnn_layers[-1](x, edge_index)
 
         # Pass through MLP
-        x = self.mlp(x)
+        x = self.mlp(x)[:batch_size]
         return torch.softmax(x, dim=1)
