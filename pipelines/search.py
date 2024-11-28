@@ -1,4 +1,6 @@
 import torch
+from typing import List
+
 
 class SequentialSearch:
     def __init__(self, model_class, trainer_class, loss_class, loaders, param_options):
@@ -9,7 +11,7 @@ class SequentialSearch:
 
         self.param_options = param_options
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.best_params = {key: values[0] for key, values in
+        self.best_params = {key: (values[0] if isinstance(values, List) else values) for key, values in
                             param_options.items()}  # Start with first option for each param
         self.results = []
 
@@ -45,7 +47,7 @@ class SequentialSearch:
                 loss_func=loss_func,
                 **current_params
             )
-            trainer.train(num_epochs=50)
+            trainer.train(num_epochs=70)
             val_acc, _ = trainer.evaluate(self.val_loader)
 
             print(f"Validation Accuracy for {param_name} = {value}: {val_acc:.4f}")
@@ -67,6 +69,8 @@ class SequentialSearch:
         """
         for _ in range(num_times):
             for param_name in self.param_options.keys():
+                if not isinstance(self.param_options[param_name], List):
+                    continue
                 self.optimize_param(param_name)
 
         print("\n=== Sequential Search Completed ===")
