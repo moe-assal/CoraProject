@@ -14,6 +14,7 @@ class JumpingKnowledge(nn.Module):
         hidden_channels = kwargs.get('hidden_channels', 16)
         activation = kwargs.get('activation', nn.ReLU)
         mlp_layers = kwargs.get('mlp_num_layers', 2)
+        self.with_n2v = kwargs.get('with_n2v', False)
 
         assert num_layers >= 2, "Number of layers must be at least 2."
 
@@ -51,7 +52,8 @@ class JumpingKnowledge(nn.Module):
     def forward(self, batch):
         # Collect outputs from all GCN layers for jumping knowledge
         x, edge_index, n2v, batch_size = batch.x, batch.edge_index, batch.n2v, batch.batch_size
-        x = torch.cat([x, n2v], dim=1)
+        if self.with_n2v:
+            x = torch.cat([x, n2v], dim=1)
 
         pre_mlp_x = [x]
         for i in range(len(self.gnn_layers)):
