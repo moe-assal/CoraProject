@@ -3,7 +3,7 @@ from typing import List
 
 
 class SequentialSearch:
-    def __init__(self, model_class, trainer_class, loss_class, loaders, param_options):
+    def __init__(self, model_class, trainer_class, loss_class, loaders, param_options, start_param=None):
         self.model_class = model_class
         self.trainer_class = trainer_class
         self.loss_class = loss_class
@@ -11,8 +11,11 @@ class SequentialSearch:
 
         self.param_options = param_options
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.best_params = {key: (values[0] if isinstance(values, List) else values) for key, values in
-                            param_options.items()}  # Start with first option for each param
+        if start_param is None:
+            self.best_params = {key: (values[0] if isinstance(values, List) else values) for key, values in
+                                param_options.items()}  # Start with first option for each param
+        else:
+            self.best_params = start_param
         self.results = []
 
     def optimize_param(self, param_name):
