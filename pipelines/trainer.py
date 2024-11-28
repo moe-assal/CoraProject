@@ -34,8 +34,9 @@ class GNNTrainer:
             self.optimizer.zero_grad()
 
             # Forward pass
-            out = self.model(batch.x, batch.edge_index)
-            loss = self.criterion(out[batch.batch], batch.y[batch.batch])
+            out = self.model(batch)
+            ground_truth = batch.y[:batch.batch_size]
+            loss = self.criterion(out, ground_truth)
             total_loss += loss.item()
 
             # Backward pass and optimizer step
@@ -57,14 +58,15 @@ class GNNTrainer:
 
         for batch in loader:
             batch = batch.to(self.device)
-            out = self.model(batch.x, batch.edge_index)
-            loss = self.criterion(out[batch.batch], batch.y[batch.batch])
+            out = self.model(batch)
+            ground_truth = batch.y[:batch.batch_size]
+            loss = self.criterion(out, ground_truth)
             total_loss += loss.item()
 
             # Compute predictions
-            preds = out.argmax(dim=1)[batch.batch]
-            correct += (preds == batch.y[batch.batch]).sum().item()
-            total += batch.y[batch.batch].size(0)
+            preds = out.argmax(dim=1)
+            correct += (preds == ground_truth).sum().item()
+            total += ground_truth.size(0)
 
         accuracy = correct / total
         avg_loss = total_loss / len(loader)
@@ -107,9 +109,9 @@ class GNNTrainer:
 
         for batch in loader:
             batch = batch.to(self.device)
-            out = self.model(batch.x, batch.edge_index)
-            preds = out.argmax(dim=1)[batch.batch]
+            out = self.model(batch)
+            preds = out.argmax(dim=1)
             predictions.append(preds.cpu())
-            labels.append(batch.y[batch.batch].cpu())
+            labels.append(batch.y[:batch.size].cpu())
 
         return torch.cat(predictions), torch.cat(labels)
