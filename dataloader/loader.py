@@ -3,8 +3,8 @@ from torch_geometric.datasets import Planetoid
 from torch_geometric.loader import NeighborLoader
 from torch.utils.data import WeightedRandomSampler
 
-def weighted_sampler(batch_size, mode, pre_transform=None):
-    dataset = Planetoid(root="../data/", name="Cora", pre_transform=pre_transform)
+def weighted_sampler(batch_size, mode, pre_transform=None, transform=None):
+    dataset = Planetoid(root="../data/", name="Cora", pre_transform=pre_transform, transform=transform)
     data = dataset[0]
 
     # class weights
@@ -38,8 +38,8 @@ def weighted_sampler(batch_size, mode, pre_transform=None):
 
 
 
-def sample(batch_size, mode, pre_transform=None):
-    dataset = Planetoid(root="./data/Cora", name="Cora", pre_transform=pre_transform)
+def sample(batch_size, mode, pre_transform=None, transform=None):
+    dataset = Planetoid(root="../data", name="Cora", pre_transform=pre_transform, transform=transform)
     data = dataset[0]
     print(data.n2v)
 
