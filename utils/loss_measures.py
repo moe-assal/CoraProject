@@ -39,3 +39,11 @@ class FocalLoss(nn.Module):
         loss = -self.alpha * focal_weight * torch.log(probs + 1e-8)  # Add epsilon to avoid log(0)
 
         return loss.mean()
+
+
+class CrossEntropyLoss:
+    def __init__(self, **kwargs):
+        self.loss_fn = nn.CrossEntropyLoss()
+
+    def __call__(self, predictions, targets):
+        return self.loss_fn(predictions, targets)
