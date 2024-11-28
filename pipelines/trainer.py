@@ -2,7 +2,7 @@ import torch
 
 
 class GNNTrainer:
-    def __init__(self, model, train_loader, val_loader, test_loader, lr=0.01):
+    def __init__(self, model, train_loader, val_loader, test_loader, loss_func, **kwargs):
         """
         Initialize the trainer with model, data loaders, and device setup.
         """
@@ -12,8 +12,10 @@ class GNNTrainer:
         self.test_loader = test_loader
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+        lr = kwargs.get('lr', 0.01)
+
         self.model.to(self.device)
-        self.criterion = torch.nn.CrossEntropyLoss()
+        self.criterion = loss_func
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, weight_decay=5e-4)
 
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
