@@ -12,7 +12,7 @@ class FocalLoss(nn.Module):
         gamma (float, optional): Focusing parameter to down-weight easy examples. Default is 2.0.
     """
 
-    def __init__(self, alpha=1.0, gamma=2.0):
+    def __init__(self, alpha=1.0, gamma=2.0, **kwargs):
         super(FocalLoss, self).__init__()
         self.alpha = alpha
         self.gamma = gamma
