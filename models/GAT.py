@@ -67,7 +67,7 @@ class GATNetwork(nn.Module):
             x = self.act(x)
 
         # Final output layer (no activation or dropout)
-        x = self.layers[-1](x, edge_index)
+        x = self.gnn_layers[-1](x, edge_index)
         x = self.mlp(x)
         x = x[:batch_size]
         return torch.softmax(x, dim=1)

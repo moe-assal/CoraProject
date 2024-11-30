@@ -3,11 +3,12 @@ from typing import List
 
 
 class SequentialSearch:
-    def __init__(self, model_class, trainer_class, loss_class, loaders, param_options, start_param=None):
+    def __init__(self, model_class, trainer_class, loss_class, loaders, param_options, start_param=None, working_file_path="best_model.pth"):
         self.model_class = model_class
         self.trainer_class = trainer_class
         self.loss_class = loss_class
         self.train_loader, self.val_loader, self.test_loader = loaders
+        self.working_file_path = working_file_path
 
         self.param_options = param_options
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -50,7 +51,7 @@ class SequentialSearch:
                 loss_func=loss_func,
                 **current_params
             )
-            trainer.train(num_epochs=70)
+            trainer.train(num_epochs=70, save_path=self.working_file_path)
             val_acc, _ = trainer.evaluate(self.val_loader)
 
             print(f"Validation Accuracy for {param_name} = {value}: {val_acc:.4f}")

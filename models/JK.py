@@ -41,7 +41,7 @@ class JumpingKnowledge(nn.Module):
 
         # Projection MLP for combined outputs
         self.mlp = MLP(
-            in_channels=hidden_channels * num_layers,
+            in_channels=in_channels + hidden_channels * num_layers,
             hidden_channels=hidden_channels,
             out_channels=out_channels,
             num_layers=mlp_layers,
