@@ -65,8 +65,8 @@ def process_cites_file(cites_file_path, paper_id_to_node_id):
 
 def main():
     # File paths
-    content_file_path = r"C:\\Users\\mersh\\OneDrive\\Desktop\\CoraProject\\CORA-UI\\cora.content"  
-    cites_file_path = r"C:\\Users\\mersh\\OneDrive\\Desktop\\CoraProject\\CORA-UI\\cora.cites"  
+    content_file_path = r"C:\\Users\\mersh\\OneDrive\\Desktop\\CoraProject\\cora.content"  
+    cites_file_path = r"C:\\Users\\mersh\\OneDrive\\Desktop\\CoraProject\\cora.cites"  
 
     # Step 1: Process the cora.content file
     nodes_with_fake_names_df, paper_id_to_node_id = process_content_file(content_file_path)

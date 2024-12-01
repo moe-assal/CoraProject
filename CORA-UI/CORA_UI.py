@@ -27,7 +27,7 @@ def save_paper(paper_name):
         log_message("EMPTY STRING ENTERED", color="red")
 
 
-def clear_paper(paper_name):
+def clear_paper(paper_abstract):
     # Reset the paper name variable
     paper_name = ""
     
@@ -112,17 +112,18 @@ def main():
     global dlg
     dlg = uic.loadUi(r"C:\\Users\\mersh\\OneDrive\\Desktop\\CoraProject\\CORA-UI\\CORA.ui")
 
-    paper_name = ""
+
     dlg.textEdit.setPlaceholderText("Enter Paper Abstract")
+    abstract = dlg.textEdit.toPlainText()
     dlg.lineEdit_2.setPlaceholderText("Search for a citation...")
     dlg.log_box.setReadOnly(True)  # Make it read-only
     dlg.log_box.setPlaceholderText("Log messages will appear here...")
     dlg.listWidget.setSelectionMode(QListWidget.MultiSelection)  # Allow multiple selection
     dlg.lineEdit_2.textChanged.connect(lambda: mark_searched_item(dlg.lineEdit_2.text()))
-    dlg.pushButton_2.clicked.connect(lambda: save_paper(paper_name))
+    dlg.pushButton_2.clicked.connect(lambda: save_paper(abstract))
    
 
-    dlg.pushButton.clicked.connect(lambda: clear_paper(paper_name))
+    dlg.pushButton.clicked.connect(lambda: clear_paper(abstract))
 
     abstract = dlg.textEdit.toPlainText()
     log_message(abstract, color="green")

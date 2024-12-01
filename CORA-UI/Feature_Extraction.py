@@ -40,7 +40,6 @@ def generate_binary_feature_vector(abstract, vector_length, word_to_index):
     feature_vector = [0] * vector_length
     tokens = abstract.lower().split()
 
-    print("Tokens in Abstract:", tokens)  # Debugging: Tokenized words
 
     matched_words = []
     for token in tokens:
@@ -48,7 +47,6 @@ def generate_binary_feature_vector(abstract, vector_length, word_to_index):
             feature_vector[word_to_index[token]] = 1
             matched_words.append(token)
 
-    print("Matched Words:", matched_words)  # Debugging: Words that matched the vocabulary
     return feature_vector
 
 def process_abstract(abstract):
