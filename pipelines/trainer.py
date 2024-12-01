@@ -72,15 +72,25 @@ class GNNTrainer:
         avg_loss = total_loss / len(loader)
         return accuracy, avg_loss
 
-    def train(self, num_epochs=50, save_path="best_model.pth"):
+    def train(self, num_epochs=50, save_path="best_model.pth", track=False):
         """
         Train the model for a specified number of epochs.
         """
         best_val_acc = 0
+        metrics = {
+            "train_loss": [],
+            "train_accuracy": [],
+            "val_loss": [],
+            "val_accuracy": []
+        }
 
         for epoch in range(1, num_epochs + 1):
             train_loss = self.train_one_epoch()
             val_acc, val_loss = self.evaluate(self.val_loader)
+            if track:
+                train_acc, _ = self.evaluate(self.train_loader)
+            else:
+                train_acc = 0
 
             print(f"Epoch {epoch:03d} | Train Loss: {train_loss:.4f} | "
                   f"Val Loss: {val_loss:.4f} | Val Accuracy: {val_acc:.4f}")
@@ -92,11 +102,19 @@ class GNNTrainer:
                 best_val_acc = val_acc
                 torch.save(self.model.state_dict(), save_path)
                 print(f"Best model saved with Val Accuracy: {val_acc:.4f}")
+            if track:
+                metrics["train_loss"].append(train_loss)
+                metrics["train_accuracy"].append(train_acc)
+                metrics["val_loss"].append(val_loss)
+                metrics["val_accuracy"].append(val_acc)
 
         # Load the best model for testing
         self.model.load_state_dict(torch.load(save_path))
         test_acc, test_loss = self.evaluate(self.test_loader)
         print(f"Test Accuracy: {test_acc:.4f} | Test Loss: {test_loss:.4f}")
+
+        if track:
+            return metrics
 
     def predict(self, loader):
         """
