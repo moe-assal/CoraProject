@@ -4,7 +4,7 @@ from pipelines.trainer import GNNTrainer
 import torch.nn as nn
 from utils.utils import set_seed
 from utils.loss_measures import CrossEntropyLoss
-from utils.plotting import plot_metrics
+from utils.plotting import plot_metrics, plot_confusion_matrix
 
 set_seed(47)
 
@@ -18,5 +18,6 @@ sample_loaders = (sample(batch_size, mode="train"), sample(batch_size, mode="val
 gnn = JumpingKnowledge(**JK_config)
 trainer = GNNTrainer(gnn, *sample_loaders, CrossEntropyLoss(**JK_config), **JK_config)
 data = trainer.train(num_epochs=100, track=True)
-print(data)
 plot_metrics(data)
+cm = trainer.compute_confusion_matrix(sample_loaders[-1])
+plot_confusion_matrix(cm)

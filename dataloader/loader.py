@@ -41,7 +41,6 @@ def weighted_sampler(batch_size, mode, pre_transform=None, transform=None):
 def sample(batch_size, mode, pre_transform=None, transform=None):
     dataset = Planetoid(root="../data", name="Cora", pre_transform=pre_transform, transform=transform)
     data = dataset[0]
-    print(data.n2v)
 
     if mode == "train":
         mask = data.train_mask.nonzero(as_tuple=True)[0]

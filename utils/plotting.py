@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+import torch
+import seaborn as sns
 
 def plot_metrics(metrics, save_path=None):
     """
@@ -39,3 +41,23 @@ def plot_metrics(metrics, save_path=None):
         print(f"Plot saved to {save_path}")
     else:
         plt.show()
+
+
+def plot_confusion_matrix(cm, cmap="Blues"):
+    """
+    Plots a heatmap of the confusion matrix.
+
+    Args:
+        cm (torch.Tensor or np.ndarray): Confusion matrix (num_classes x num_classes).
+        cmap (str, optional): Colormap for the heatmap. Defaults to "Blues".
+    """
+    if isinstance(cm, torch.Tensor):
+        cm = cm.numpy()  # Convert to NumPy array for plotting
+    class_labels = ["Case_Based", "Genetic_Algorithms", "Neural_Networks", "Probabilistic_Methods",
+                    "Reinforcement_Learning", "Rule_Learning", "Theory"]
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(cm, annot=True, fmt="d", cmap=cmap, xticklabels=class_labels, yticklabels=class_labels)
+    plt.title("Confusion Matrix")
+    plt.xlabel("Predicted")
+    plt.ylabel("Ground Truth")
+    plt.show()
