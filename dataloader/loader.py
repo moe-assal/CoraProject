@@ -2,13 +2,10 @@ import torch
 from torch_geometric.datasets import Planetoid
 from torch_geometric.loader import NeighborLoader
 from torch.utils.data import WeightedRandomSampler
-from torch_geometric.utils import to_undirected
-
 
 def weighted_sampler(batch_size, mode, pre_transform=None, transform=None):
     dataset = Planetoid(root="../data/", name="Cora", pre_transform=pre_transform, transform=transform)
     data = dataset[0]
-    data.edge_index = to_undirected(data.edge_index)
 
     # class weights
     node_labels = data.y
@@ -44,8 +41,8 @@ def weighted_sampler(batch_size, mode, pre_transform=None, transform=None):
 def sample(batch_size, mode, pre_transform=None, transform=None):
     dataset = Planetoid(root="../data", name="Cora", pre_transform=pre_transform, transform=transform)
     data = dataset[0]
-    data.edge_index = to_undirected(data.edge_index)
-    
+    print(data.n2v)
+
     if mode == "train":
         mask = data.train_mask.nonzero(as_tuple=True)[0]
     elif mode == "test":

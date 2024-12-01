@@ -1,5 +1,5 @@
 import torch
-
+from utils.accuracy_measures import f1_accuracy, confusion_matrix
 
 class GNNTrainer:
     def __init__(self, model, train_loader, val_loader, test_loader, loss_func, **kwargs):
@@ -72,15 +72,25 @@ class GNNTrainer:
         avg_loss = total_loss / len(loader)
         return accuracy, avg_loss
 
-    def train(self, num_epochs=50, save_path="best_model.pth"):
+    def train(self, num_epochs=50, save_path="best_model.pth", track=False):
         """
         Train the model for a specified number of epochs.
         """
         best_val_acc = 0
+        metrics = {
+            "train_loss": [],
+            "train_accuracy": [],
+            "val_loss": [],
+            "val_accuracy": []
+        }
 
         for epoch in range(1, num_epochs + 1):
             train_loss = self.train_one_epoch()
             val_acc, val_loss = self.evaluate(self.val_loader)
+            if track:
+                train_acc, _ = self.evaluate(self.train_loader)
+            else:
+                train_acc = 0
 
             print(f"Epoch {epoch:03d} | Train Loss: {train_loss:.4f} | "
                   f"Val Loss: {val_loss:.4f} | Val Accuracy: {val_acc:.4f}")
@@ -92,11 +102,19 @@ class GNNTrainer:
                 best_val_acc = val_acc
                 torch.save(self.model.state_dict(), save_path)
                 print(f"Best model saved with Val Accuracy: {val_acc:.4f}")
+            if track:
+                metrics["train_loss"].append(train_loss)
+                metrics["train_accuracy"].append(train_acc)
+                metrics["val_loss"].append(val_loss)
+                metrics["val_accuracy"].append(val_acc)
 
         # Load the best model for testing
         self.model.load_state_dict(torch.load(save_path))
         test_acc, test_loss = self.evaluate(self.test_loader)
         print(f"Test Accuracy: {test_acc:.4f} | Test Loss: {test_loss:.4f}")
+
+        if track:
+            return metrics
 
     def predict(self, loader):
         """
@@ -115,3 +133,60 @@ class GNNTrainer:
             labels.append(batch.y[:batch.size].cpu())
 
         return torch.cat(predictions), torch.cat(labels)
+
+    @torch.no_grad()
+    def compute_f1_score(self, loader):
+        """
+        Compute the F1-score for the given loader.
+        """
+        self.model.eval()
+        all_preds = []
+        all_labels = []
+
+        for batch in loader:
+            batch = batch.to(self.device)
+            out = self.model(batch)
+
+            # Predicted labels
+            preds = out.argmax(dim=1).cpu()
+            # Ground truth labels
+            labels = batch.y[:batch.batch_size].cpu()
+
+            all_preds.append(preds)
+            all_labels.append(labels)
+
+        all_preds = torch.cat(all_preds)
+        all_labels = torch.cat(all_labels)
+
+        # Compute F1-score using sklearn
+        f1 = f1_accuracy(all_preds, all_labels)
+
+        return f1
+
+    @torch.no_grad()
+    def compute_confusion_matrix(self, loader):
+        """
+        Compute the Confusion Matrix for the given loader.
+        """
+        self.model.eval()
+        all_preds = []
+        all_labels = []
+
+        for batch in loader:
+            batch = batch.to(self.device)
+            out = self.model(batch)
+
+            # Predicted labels
+            preds = out.argmax(dim=1).cpu()
+            # Ground truth labels
+            labels = batch.y[:batch.batch_size].cpu()
+
+            all_preds.append(preds)
+            all_labels.append(labels)
+
+        all_preds = torch.cat(all_preds)
+        all_labels = torch.cat(all_labels)
+
+        cm = confusion_matrix(all_preds, all_labels)
+
+        return cm

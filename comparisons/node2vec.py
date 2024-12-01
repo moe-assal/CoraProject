@@ -50,15 +50,15 @@ param_options_with_n2v = {
 }
 
 
-for param, param_option_name in zip([param_options_without_n2v, param_options_with_n2v], ['base+n2v', 'base']):
+for param, param_option_name in zip([param_options_without_n2v, param_options_with_n2v], ['base', 'base+n2v']):
     best_params[param_option_name] = dict()
-    for gnn, gnn_name in zip([GATNetwork, GCNNetwork, JumpingKnowledge], ['GAT', 'GCN', 'JK']):
+    for gnn, gnn_name in zip([JumpingKnowledge, GATNetwork, GCNNetwork], ['JK', 'GAT', 'GCN']):
         search = SequentialSearch(
             model_class=gnn,
             trainer_class=GNNTrainer,
             loss_class=CrossEntropyLoss,
             loaders=loaders,
-            param_options=param
+            param_options=param,
         )
 
         # Perform parameter optimization
