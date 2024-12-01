@@ -42,7 +42,7 @@ def node2vec_transform(data: Data, embedding_dim=128, walk_length=10, context_si
             print(f"Epoch {epoch + 1}/{epochs}, Loss: {total_loss:.4f}")
 
     train()
-    data.n2v = node2vec(torch.arange(data.num_nodes))
+    data.n2v = node2vec(torch.arange(data.num_nodes)).detach()
 
     return data
 

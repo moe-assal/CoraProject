@@ -1,17 +1,17 @@
 import torch
-from models.GAT import GATNetwork
+from models.JK import JumpingKnowledge
 from torch_geometric.data import Data
 from flask import Flask, request, jsonify
 import json
 
 
-class GATModelAPI:
+class API:
     def __init__(self, model_path, in_channels, out_channels, **model_kwargs):
         """
         Initialize the API with the pre-trained model.
         """
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.model = GATNetwork(in_channels, out_channels, **model_kwargs).to(self.device)
+        self.model = JumpingKnowledge(in_channels, out_channels, **model_kwargs).to(self.device)
         self.model.load_state_dict(torch.load(model_path, map_location=self.device))
         self.model.eval()
 
@@ -32,8 +32,7 @@ class GATModelAPI:
         # Prepare the data batch
         data = Data(x=x, edge_index=edge_index).to(self.device)
 
-        # TODO: if n2v is used, do an average location
-        # data.n2v = torch.zeros(data.x.size(0), 1).to(self.device)  # Placeholder for n2v, if unused
+        data.n2v = torch.zeros(data.x.size(0), 1).to(self.device)  # Placeholder for n2v, not unused
         data.batch_size = 1  # Assuming one sample at a time for prediction
 
         return data
@@ -72,33 +71,3 @@ class GATModelAPI:
                 return jsonify({"error": str(e)}), 500
 
         return app
-
-"""
-if __name__ == "__main__":
-    # Load the Cora dataset (assume it has already been preprocessed)
-    from torch_geometric.datasets import Planetoid
-    dataset = Planetoid(root="/tmp/Cora", name="Cora")
-    cora_data = dataset[0]
-
-    # Parameters of the model (adjust based on your setup)
-    in_channels = dataset.num_node_features
-    out_channels = dataset.num_classes
-    model_kwargs = {
-        "num_layers": 2,
-        "num_heads": 4,
-        "layer_norm": True,
-        "dropout": 0.2,
-        "hidden_channels": 16,
-        "activation": torch.nn.ReLU,
-        "mlp_num_layers": 2,
-        "with_n2v": False,
-    }
-
-    # Create API instance
-    model_path = "best_model.pth"
-    api = GATModelAPI(model_path, in_channels, out_channels, **model_kwargs)
-
-    # Run Flask app
-    app = api.create_app(cora_data)
-    app.run(host="0.0.0.0", port=5000)
-"""
