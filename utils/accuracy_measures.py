@@ -1,7 +1,7 @@
 import torch
 
 
-def f1_accuracy(predictions, ground_truth, num_classes=8):
+def f1_accuracy(predictions, ground_truth, num_classes=7):
     # Initialize precision, recall, and F1 scores for each class
     precision = torch.zeros(num_classes)
     recall = torch.zeros(num_classes)
@@ -29,7 +29,7 @@ def f1_accuracy(predictions, ground_truth, num_classes=8):
     return f1.mean()
 
 
-def confusion_matrix(predictions, ground_truth, num_classes):
+def confusion_matrix(predictions, ground_truth, num_classes=7):
     # Initialize the confusion matrix
     cm = torch.zeros(num_classes, num_classes, dtype=torch.int64)
 

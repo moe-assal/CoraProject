@@ -1,5 +1,5 @@
 import torch
-
+from utils.accuracy_measures import f1_accuracy, confusion_matrix
 
 class GNNTrainer:
     def __init__(self, model, train_loader, val_loader, test_loader, loss_func, **kwargs):
@@ -115,3 +115,60 @@ class GNNTrainer:
             labels.append(batch.y[:batch.size].cpu())
 
         return torch.cat(predictions), torch.cat(labels)
+
+    @torch.no_grad()
+    def compute_f1_score(self, loader):
+        """
+        Compute the F1-score for the given loader.
+        """
+        self.model.eval()
+        all_preds = []
+        all_labels = []
+
+        for batch in loader:
+            batch = batch.to(self.device)
+            out = self.model(batch)
+
+            # Predicted labels
+            preds = out.argmax(dim=1).cpu()
+            # Ground truth labels
+            labels = batch.y[:batch.batch_size].cpu()
+
+            all_preds.append(preds)
+            all_labels.append(labels)
+
+        all_preds = torch.cat(all_preds)
+        all_labels = torch.cat(all_labels)
+
+        # Compute F1-score using sklearn
+        f1 = f1_accuracy(all_preds, all_labels)
+
+        return f1
+
+    @torch.no_grad()
+    def compute_confusion_matrix(self, loader):
+        """
+        Compute the Confusion Matrix for the given loader.
+        """
+        self.model.eval()
+        all_preds = []
+        all_labels = []
+
+        for batch in loader:
+            batch = batch.to(self.device)
+            out = self.model(batch)
+
+            # Predicted labels
+            preds = out.argmax(dim=1).cpu()
+            # Ground truth labels
+            labels = batch.y[:batch.batch_size].cpu()
+
+            all_preds.append(preds)
+            all_labels.append(labels)
+
+        all_preds = torch.cat(all_preds)
+        all_labels = torch.cat(all_labels)
+
+        cm = confusion_matrix(all_preds, all_labels)
+
+        return cm
