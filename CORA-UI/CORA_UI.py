@@ -6,6 +6,8 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QListWidget, QListWidgetItem, QPushButton
 import Feature_Extraction as FE
 
+
+
 def log_message(message, color="white"):
     """Add a message to the log box."""
     dlg.log_box.setTextColor(QColor(color))
@@ -28,9 +30,6 @@ def save_paper(paper_name):
 
 
 def clear_paper(paper_abstract):
-    # Reset the paper name variable
-    paper_name = ""
-    
     # Check if the QTextEdit contains text
     if not dlg.textEdit.toPlainText().strip() == "":
         # Clear the QTextEdit
@@ -38,10 +37,8 @@ def clear_paper(paper_abstract):
         
         # Log that the paper name was cleared
         log_message("Paper Abstract cleared.", color="blue")
-        log_message("Try Again: " + paper_name, color="blue")
+        log_message("Try Again: ", color="blue")
         
-        # Print the cleared paper name
-        print(paper_name)
     else:
         # Log a message indicating that the QTextEdit is already empty
         log_message("Already Empty!", color="blue")
@@ -216,6 +213,7 @@ def main():
     dlg.pushButton_3.clicked.connect(lambda: save_citations(saved_citations))
     
     feature_vector= FE.process_abstract(abstract)
+    
 
     dlg.show()
     app.exec()
