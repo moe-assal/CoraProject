@@ -1,131 +1,121 @@
 from PyQt5 import QtWidgets, uic
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QColor
-from PyQt5.QtCore import Qt 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QListWidget, QListWidgetItem, QPushButton
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QListWidgetItem
 import Feature_Extraction as FE
+import pandas as pd
+import requests
 
+def call_api(feature_vector, citations, api_url="http://127.0.0.1:5000/predict"):
+    """
+    Calls the prediction API with a given feature vector and citations.
+
+    Args:
+        feature_vector (list): The feature vector of the new node.
+        citations (list): List of node IDs (connections) for the new node.
+        api_url (str): The URL of the API endpoint.
+
+    Returns:
+        dict: The API response containing predictions or an error message.
+    """
+    payload = {
+        "feature_vector": feature_vector,
+        "connections": citations
+    }
+    try:
+        response = requests.post(api_url, json=payload)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        return {"error": str(e)}
+
+def map_citations_to_legitimate_titles_from_csv(citations, csv_file_path):
+    """
+    Maps the citation fake names to their legitimate titles using a CSV file.
+    """
+    nodes_with_legitimate_titles_df = pd.read_csv(csv_file_path)
+    fake_name_to_legit_title = dict(zip(nodes_with_legitimate_titles_df["Fake Name"], nodes_with_legitimate_titles_df["Top Paper Title"]))
+    return {citation: fake_name_to_legit_title.get(citation, "Unknown Title") for citation in citations}
 
 
 def log_message(message, color="white"):
     """Add a message to the log box."""
     dlg.log_box.setTextColor(QColor(color))
-    dlg.log_box.append(message)  # Append the message to the log box
+    dlg.log_box.append(message)
 
-def save_paper(paper_name):
-    # Check if the QTextEdit contains text
-    if not dlg.textEdit.toPlainText().strip() == "":
-        # Retrieve the text from QTextEdit
-        paper_name = dlg.textEdit.toPlainText().strip()
-        
-        # Clear the QTextEdit
+def save_paper():
+    """Save the paper abstract."""
+    abstract = dlg.textEdit.toPlainText().strip()
+    if abstract:
         dlg.textEdit.setPlainText("")
-        
-        # Log the saved paper name
-        log_message("Paper Abstract: " + paper_name, color="blue")
+        log_message("Paper Abstract: " + abstract, color="blue")
     else:
-        # Log an error message for empty input
         log_message("EMPTY STRING ENTERED", color="red")
 
+def clear_paper():
+    """Clear the paper abstract."""
+    dlg.textEdit.setPlainText("")
+    log_message("Paper Abstract cleared.", color="blue")
+    log_message("Try Again: ", color="blue")
 
-def clear_paper(paper_abstract):
-    # Check if the QTextEdit contains text
-    if not dlg.textEdit.toPlainText().strip() == "":
-        # Clear the QTextEdit
-        dlg.textEdit.setPlainText("")
-        
-        # Log that the paper name was cleared
-        log_message("Paper Abstract cleared.", color="blue")
-        log_message("Try Again: ", color="blue")
-        
-    else:
-        # Log a message indicating that the QTextEdit is already empty
-        log_message("Already Empty!", color="blue")
-
-
-def save_citations(saved_citations):
-    """Save selected, checked, and entered citations to a separate list."""
+def save_citations(legit_citations):
+    """Save selected, checked, and entered citations."""
+    saved_citations = []
     for i in range(dlg.listWidget.count()):
         item = dlg.listWidget.item(i)
-        if item.checkState() == Qt.Checked:  # Check if the checkbox is checked
-            paper_id = item.text().split("_")[-1]  # Extract the ID at the end
-            saved_citations.append(paper_id)
-
-    selected_items = dlg.listWidget.selectedItems()
-    for item in selected_items:
-        paper_id = item.text().split("_")[-1]  # Extract the ID at the end
-        if paper_id not in saved_citations:  # Avoid duplicates
-            saved_citations.append(paper_id)
-
+        if item.checkState() == Qt.Checked:
+            title = item.text()
+            for key, value in legit_citations.items():
+                if value == title:
+                    paper_id = key.split("_")[-1]
+                    saved_citations.append(int(paper_id))
+                    break
     entered_text = dlg.lineEdit_2.text().strip()
     if entered_text:
-        item_found = False
-        for i in range(dlg.listWidget.count()):
-            item = dlg.listWidget.item(i)
-            if entered_text.lower() == item.text().lower():  # Case-insensitive match
-                paper_id = item.text().split("_")[-1]  # Extract the ID at the end
-                if paper_id not in saved_citations:  # Avoid duplicates
-                    saved_citations.append(paper_id)
-                item_found = True
+        for key, value in legit_citations.items():
+            if entered_text.lower() == value.lower():
+                paper_id = key.split("_")[-1]
+                if int(paper_id) not in saved_citations:
+                    saved_citations.append(int(paper_id))
                 break
-
-        if not item_found:
-            log_message(f"'{entered_text}' not found in the list!", color="red")
-
-    if len(saved_citations) != 0:
-        log_message("WARNING! ONCE SAVED, CITATIONS ARE VALID FOR 1-TIME USE", color="red")
+    if saved_citations:
         log_message("Citations saved successfully!", color="blue")
         log_message(str(saved_citations))
-
-        for i in range(dlg.listWidget.count()):
-            item = dlg.listWidget.item(i)
-            item.setCheckState(Qt.Unchecked)
-        dlg.listWidget.clearSelection()
-        log_message("Selection Cleared!")
     else:
         log_message("INVALID Citations!", color="red")
-        dlg.listWidget.clearSelection()
-
-    dlg.lineEdit_2.clear()
-    saved_citations.clear()
-    log_message("Saved citations cleared after saving.", color="green")
-
+    return saved_citations
 
 def mark_searched_item(text):
     """Mark the searched item in the QListWidget."""
     for i in range(dlg.listWidget.count()):
         item = dlg.listWidget.item(i)
         if text.lower() in item.text().lower():
-            item.setSelected(True)  # Select the matching item
+            item.setSelected(True)
         else:
-            item.setSelected(False)  # Deselect non-matching items
+            item.setSelected(False)
 
-def show_message(title, message):
-    QMessageBox.information(None, title, message)
+def make_api_call():
+    """Process the abstract and call the API."""
+    abstract = dlg.textEdit.toPlainText().strip()
+    feature_vector = FE.process_abstract(abstract)
+    saved_citations = save_citations(legit_citations)
+    api_url = "http://127.0.0.1:5000/predict"
+    response = call_api(feature_vector, saved_citations, api_url)
+    if "predictions" in response:
+        log_message("Predictions: " + str(response["predictions"]), color="green")
+    else:
+        log_message("Error: " + response.get("error", "Unknown error occurred"), color="red")
 
 def main():
     app = QtWidgets.QApplication([])
     global dlg
     dlg = uic.loadUi(r"C:\\Users\\mersh\\OneDrive\\Desktop\\CoraProject\\CORA-UI\\CORA.ui")
-
-
+    
     dlg.textEdit.setPlaceholderText("Enter Paper Abstract")
-    abstract = dlg.textEdit.toPlainText()
     dlg.lineEdit_2.setPlaceholderText("Search for a citation...")
-    dlg.log_box.setReadOnly(True)  # Make it read-only
+    dlg.log_box.setReadOnly(True)
     dlg.log_box.setPlaceholderText("Log messages will appear here...")
-    dlg.listWidget.setSelectionMode(QListWidget.MultiSelection)  # Allow multiple selection
-    dlg.lineEdit_2.textChanged.connect(lambda: mark_searched_item(dlg.lineEdit_2.text()))
-    dlg.pushButton_2.clicked.connect(lambda: save_paper(abstract))
-   
-
-    dlg.pushButton.clicked.connect(lambda: clear_paper(abstract))
-
-    abstract = dlg.textEdit.toPlainText()
-    log_message(abstract, color="green")
-
-
+    dlg.listWidget.setSelectionMode(QtWidgets.QListWidget.MultiSelection)
     citations=[
     "Paper_CaseBased_1420",
     "Paper_CaseBased_2415",
@@ -198,25 +188,28 @@ def main():
     "Paper_Theory_2080",
     "Paper_Theory_1339"
 ]
-
-
-
-
-
-    for citation in citations:
-        item = QListWidgetItem(citation)
-        item.setFlags(item.flags() | Qt.ItemIsUserCheckable)  # Enable checkbox
-        item.setCheckState(Qt.Unchecked)  # Set initial state to unchecked
+    
+    global legit_citations
+    legit_citations = map_citations_to_legitimate_titles_from_csv(
+        citations, r"C:\\Users\\mersh\\OneDrive\\Desktop\\CoraProject\\CORA-UI\\Nodes_with_Legitimate_Titles.csv"
+    )
+    for citation, title in legit_citations.items():
+        item = QListWidgetItem(title)
+        item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+        item.setCheckState(Qt.Unchecked)
         dlg.listWidget.addItem(item)
 
-    saved_citations = []
-    dlg.pushButton_3.clicked.connect(lambda: save_citations(saved_citations))
-    
-    feature_vector= FE.process_abstract(abstract)
-    
+    # Connect buttons to actions
+    dlg.pushButton_2.clicked.connect(save_paper)
+    dlg.pushButton.clicked.connect(clear_paper)
+    dlg.pushButton_3.clicked.connect(make_api_call)
+    dlg.lineEdit_2.textChanged.connect(lambda: mark_searched_item(dlg.lineEdit_2.text()))
 
     dlg.show()
     app.exec()
 
 if __name__ == "__main__":
     main()
+
+
+    
