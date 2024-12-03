@@ -77,18 +77,16 @@ def generate_binary_feature_vector(abstract, vector_length, word_to_index):
     return feature_vector
 
 def process_abstract(abstract, vector_length=1433):
-    print("abstract",abstract)
     """
     Process an abstract to generate a binary feature vector.
 
     Args:
         abstract (str): The input abstract.
-        category_wordlists (dict): A dictionary of categories and their word lists.
         vector_length (int): Length of the feature vector.
 
     Returns:
         list: A binary feature vector representing the abstract.
     """
-    word_to_index = build_vocabulary(CATEGORY_WORDLISTS, vector_length=vector_length)
+    word_to_index = build_vocabulary(CATEGORY_INDICES, CATEGORY_WORDLISTS, vector_length=vector_length)
     feature_vector = generate_binary_feature_vector(abstract, vector_length=vector_length, word_to_index=word_to_index)
     return feature_vector
