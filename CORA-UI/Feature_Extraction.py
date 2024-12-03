@@ -7,29 +7,36 @@ CATEGORY_WORDLISTS = {
         "case", "reasoning", "instance", "retrieval", "adaptation", "example", "similarity",
     ],
     "Genetic Algorithms": [
-        "genetic", "evolutionary", "chromosome", "mutation", "fitness", "selection", "gene",
+        "genetic", "evolutionary", "population", "mutation", "fitness", "selection", "gene",
     ],
     "Neural Networks": [
-        "neural", "networks","network", "layers","layer","activation", "backpropagation", "perceptron", "gradient",
-        "deep", "weights", "bias", "input", "output", "hidden", "connection", "training",
+        "neural","network", "layer", "gradient", "deep", "weight", "training",
     ],
     "Probabilistic Methods": [
-        "probability", "bayesian", "distribution", "inference", "likelihood", "random", "model",
+        "probability", "bayesian", "distribution", "inference", "likelihood", "random", "model"
     ],
     "Reinforcement Learning": [
-        "reinforcement", "policy", "reward","agent", "agents", "action", "state", "environment", "rewards",
+        "reinforcement", "policy", "reward","agent", "action", "state", "environment"
     ],
     "Rule Learning": [
         "rule", "induction", "predicate", "logical", "syntax", "knowledge", "classification",
     ],
     "Theory": [
-        "theory", "formal", "proof", "axiom", "foundation", "principle", "hypothesis",
+        "theory", "formal", "proof", "PAC", "complexity", "VC", "hypothesis",
     ],
 }
 
+CATEGORY_INDICES = {
+    "Case-Based": [827, 489, 1336, 1211, 1022],
+    "Genetic Algorithms": [581, 38, 1263, 604, 829],
+    "Neural Networks": [299, 140, 495, 368, 310],
+    "Probabilistic Methods": [865, 774, 393, 877, 19],
+    "Reinforcement Learning": [1254, 647, 51, 821, 474],
+    "Rule Learning": [4, 40, 750, 758, 728],
+    "Theory": [1057, 485, 1005, 814, 1246]
+}
 
-
-def build_vocabulary(category_wordlists, vector_length=1433):
+def build_vocabulary(categroy_indices, category_wordlists, vector_length=1433):
     """
     Build a vocabulary from the given category wordlists.
 
@@ -40,17 +47,11 @@ def build_vocabulary(category_wordlists, vector_length=1433):
     Returns:
         tuple: A tuple containing the full vocabulary list and a word-to-index mapping.
     """
-    if not category_wordlists:
-        raise ValueError("CATEGORY_WORDLISTS cannot be empty.")
-    
-    full_vocabulary = list({word for words in category_wordlists.values() for word in words})
-    if len(full_vocabulary) < vector_length:
-        full_vocabulary.extend([f"__dummy_word_{i}__" for i in range(vector_length - len(full_vocabulary))])
-    elif len(full_vocabulary) > vector_length:
-        full_vocabulary = full_vocabulary[:vector_length]
-    
-    word_to_index = {word: idx for idx, word in enumerate(full_vocabulary)}
-    return full_vocabulary, word_to_index
+    word_to_index = dict()
+    for category in category_wordlists.keys():
+        for word, index in zip(category_wordlists[category], categroy_indices[category]):
+            word_to_index[word] = index
+    return word_to_index
 
 def generate_binary_feature_vector(abstract, vector_length, word_to_index):
     """
@@ -69,7 +70,7 @@ def generate_binary_feature_vector(abstract, vector_length, word_to_index):
 
     matched_words = []
     for token in tokens:
-        if token in word_to_index:
+        if token in word_to_index or (token + 's') in word_to_index:
             feature_vector[word_to_index[token]] = 1
             matched_words.append(token)
 
@@ -88,6 +89,6 @@ def process_abstract(abstract, vector_length=1433):
     Returns:
         list: A binary feature vector representing the abstract.
     """
-    full_vocabulary, word_to_index = build_vocabulary(CATEGORY_WORDLISTS, vector_length=vector_length)
+    word_to_index = build_vocabulary(CATEGORY_WORDLISTS, vector_length=vector_length)
     feature_vector = generate_binary_feature_vector(abstract, vector_length=vector_length, word_to_index=word_to_index)
     return feature_vector
