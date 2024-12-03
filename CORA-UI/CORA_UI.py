@@ -5,10 +5,115 @@ from PyQt5.QtWidgets import QListWidgetItem
 import pandas as pd
 import requests
 import Feature_Extraction as FE
+import pyqtgraph as pg
+import numpy as np
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5.QtWidgets import QVBoxLayout
+
+
 
 global Abstract, saved_citations
 Abstract = ""
 saved_citations = []
+
+import matplotlib.pyplot as plt
+from PyQt5.QtWidgets import QVBoxLayout, QWidget
+
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5.QtWidgets import QVBoxLayout, QWidget
+
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5.QtWidgets import QVBoxLayout, QWidget
+
+
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5.QtWidgets import QVBoxLayout, QWidget
+
+
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5.QtWidgets import QVBoxLayout
+
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5.QtWidgets import QVBoxLayout
+
+
+def create_pie_chart(predictions):
+    """
+    Creates and displays a pie chart for a single prediction.
+    Each class is represented as a slice of the pie, with percentages displayed.
+    A legend (keymap) is added to show color labels for each class.
+    """
+    # Ensure predictions are valid
+    if not predictions or not isinstance(predictions, list) or len(predictions) != 1:
+        log_message("Error: Invalid predictions data. Expected a single prediction array.", color="red")
+        return
+
+    # Extract the single prediction (list of probabilities for 7 classes)
+    prediction = predictions[0]
+
+    # Define class labels (7 classes for the Cora dataset)
+    class_labels = ["Case_Based", "Genetic_Algorithms", "Neural_Networks", "Probabilistic_Methods",
+                    "Reinforcement_Learning", "Rule_Learning", "Theory"]
+
+    # Ensure the prediction has 7 values (one for each class)
+    if len(prediction) != len(class_labels):
+        log_message("Error: Prediction does not contain exactly 7 values.", color="red")
+        return
+
+    # Show the graphWidget when generating the chart
+    dlg.graphWidget.show()
+
+    # Initialize a layout if the graphWidget has no layout
+    if dlg.graphWidget.layout() is None:
+        dlg.graphWidget.setLayout(QVBoxLayout())
+    layout = dlg.graphWidget.layout()
+
+    # Clear the existing layout in graphWidget
+    for i in reversed(range(layout.count())):
+        widget_to_remove = layout.itemAt(i).widget()
+        layout.removeWidget(widget_to_remove)
+        widget_to_remove.deleteLater()
+
+    # Create the pie chart
+    fig, ax = plt.subplots(figsize=(6, 6))
+    colors = plt.cm.Paired.colors  # Use a paired color map
+    wedges, texts, autotexts = ax.pie(
+        prediction,
+        labels=None,  # Do not show labels on the pie chart
+        autopct=lambda pct: f"{pct:.1f}%",  # Format percentages
+        startangle=140,
+        colors=colors  # Apply colors to slices
+    )
+
+    # Add a legend (keymap) to show class-color mapping
+    ax.legend(
+        wedges,  # Link legend to pie slices
+        class_labels,  # Use class labels
+        title="Classes",  # Legend title
+        loc="center left",  # Position legend
+        bbox_to_anchor=(1, 0, 0.5, 1),  # Position legend outside the pie chart
+        fontsize=10
+    )
+
+    # Customize the pie chart
+    ax.set_title("Predictions for Cora Classes", fontsize=14)
+    for autotext in autotexts:
+        autotext.set_fontsize(10)  # Set percentage font size
+        autotext.set_color("white")  # Make percentages readable
+
+    # Embed the matplotlib figure into the PyQt5 widget
+    canvas = FigureCanvas(fig)
+    canvas.draw()  # Explicitly draw the canvas to ensure it renders
+    layout.addWidget(canvas)
+    dlg.graphWidget.show()
+
 
 def call_api(feature_vector, citations, api_url="http://127.0.0.1:5000/predict"):
     """
@@ -135,6 +240,7 @@ def make_api_call():
     response = call_api(feature_vector, saved_citations)
     if "predictions" in response:
         log_message("Predictions: " + str(response["predictions"]), color="green")
+        create_pie_chart(response["predictions"])  # Pass predictions to the bar graph
     else:
         log_message("Error: " + response.get("error", "Unknown error occurred"), color="red")
 
@@ -142,7 +248,7 @@ def main():
     app = QtWidgets.QApplication([])
     global dlg
     dlg = uic.loadUi(r"C:\\Users\\mersh\\OneDrive\\Desktop\\CoraProject\\CORA-UI\\CORA.ui")
-    
+    dlg.graphWidget.hide()
     dlg.textEdit.setPlaceholderText("Enter Paper Abstract")
     dlg.lineEdit_2.setPlaceholderText("Search for a citation...")
     dlg.log_box.setReadOnly(True)
