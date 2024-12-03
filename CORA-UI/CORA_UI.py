@@ -51,21 +51,13 @@ def create_pie_chart(predictions):
     A legend (keymap) is added to show color labels for each class.
     """
     # Ensure predictions are valid
-    if not predictions or not isinstance(predictions, list) or len(predictions) != 1:
-        log_message("Error: Invalid predictions data. Expected a single prediction array.", color="red")
+    if not predictions or not isinstance(predictions, (list, np.ndarray)) or len(predictions) != 7:
+        log_message("Error: Invalid predictions data. Expected an array of 7 values.", color="red")
         return
-
-    # Extract the single prediction (list of probabilities for 7 classes)
-    prediction = predictions[0]
 
     # Define class labels (7 classes for the Cora dataset)
     class_labels = ["Case_Based", "Genetic_Algorithms", "Neural_Networks", "Probabilistic_Methods",
                     "Reinforcement_Learning", "Rule_Learning", "Theory"]
-
-    # Ensure the prediction has 7 values (one for each class)
-    if len(prediction) != len(class_labels):
-        log_message("Error: Prediction does not contain exactly 7 values.", color="red")
-        return
 
     # Show the graphWidget when generating the chart
     dlg.graphWidget.show()
@@ -85,7 +77,7 @@ def create_pie_chart(predictions):
     fig, ax = plt.subplots(figsize=(6, 6))
     colors = plt.cm.Paired.colors  # Use a paired color map
     wedges, texts, autotexts = ax.pie(
-        prediction,
+        predictions,  # Directly use the predictions list
         labels=None,  # Do not show labels on the pie chart
         autopct=lambda pct: f"{pct:.1f}%",  # Format percentages
         startangle=140,
@@ -113,6 +105,7 @@ def create_pie_chart(predictions):
     canvas.draw()  # Explicitly draw the canvas to ensure it renders
     layout.addWidget(canvas)
     dlg.graphWidget.show()
+
 
 
 def call_api(feature_vector, citations, api_url="http://127.0.0.1:5000/predict"):

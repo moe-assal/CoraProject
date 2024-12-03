@@ -9,9 +9,9 @@ CATEGORY_WORDLISTS = {
     "Genetic Algorithms": [
         "genetic", "evolutionary", "population", "mutation", "fitness", "selection", "gene",
     ],
-    "Neural Networks": [
-        "neural","network", "layer", "gradient", "deep", "weight", "training",
-    ],
+    "Neural Networks": ["feedforward", "recurrent", "convolutional", "autoencoder", "LSTM", "GRU", 
+    "transformer", "attention", "GAN", "MLP", "ResNet", "DenseNet", "VGG", "Inception", 
+    "BERT", "GPT", "U-Net", "WideResNet"],
     "Probabilistic Methods": [
         "probability", "bayesian", "distribution", "inference", "likelihood", "random", "model"
     ],
