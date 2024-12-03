@@ -11,8 +11,7 @@ labels = data.y
 
 # Count the occurrences of each label
 label_counts = Counter(labels.tolist())
-class_labels = ["Case_Based", "Genetic_Algorithms", "Neural_Networks", "Probabilistic_Methods",
-                "Reinforcement_Learning", "Rule_Learning", "Theory"]
+class_labels = ["CaseB", "GA", "NN", "ProbM", "RL", "RuleL", "Theory"]
 
 print(label_counts.keys())
 # Plot the class distribution

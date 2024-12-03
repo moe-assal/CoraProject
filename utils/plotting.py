@@ -53,8 +53,7 @@ def plot_confusion_matrix(cm, cmap="Blues"):
     """
     if isinstance(cm, torch.Tensor):
         cm = cm.numpy()  # Convert to NumPy array for plotting
-    class_labels = ["Case_Based", "Genetic_Algorithms", "Neural_Networks", "Probabilistic_Methods",
-                    "Reinforcement_Learning", "Rule_Learning", "Theory"]
+    class_labels = ["CaseB", "GA", "NN", "ProbM", "RL", "RuleL", "Theory"]
     plt.figure(figsize=(8, 6))
     sns.heatmap(cm, annot=True, fmt="d", cmap=cmap, xticklabels=class_labels, yticklabels=class_labels)
     plt.title("Confusion Matrix")
