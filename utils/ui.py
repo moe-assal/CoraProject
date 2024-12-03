@@ -35,15 +35,15 @@ class API:
         data.n2v = torch.zeros(data.x.size(0), 1).to(self.device)  # Placeholder for n2v, not unused
         data.batch_size = 1  # Assuming one sample at a time for prediction
 
-        return data
+        return data, new_node_id
 
     def predict(self, feature_vector, connections, cora_dataset):
         """
         Make predictions for a new node using the pre-trained model.
         """
         with torch.no_grad():
-            data = self.preprocess(feature_vector, connections, cora_dataset)
-            prediction = self.model(data)
+            data, node_id = self.preprocess(feature_vector, connections, cora_dataset)
+            prediction = self.model.node_predict(data, node_id)
             return prediction.cpu().numpy().tolist()
 
     def create_app(self, cora_dataset):

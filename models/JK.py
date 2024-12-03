@@ -70,3 +70,36 @@ class JumpingKnowledge(nn.Module):
         x_out = self.mlp(x_concat)[:batch_size]
 
         return torch.softmax(x_out, dim=1)  # Output probabilities
+
+    @torch.no_grad()
+    def node_predict(self, batch, node_id):
+        """
+        Predict the probabilities for a specific node.
+
+        Args:
+            batch (Data): The batched graph data object.
+            node_id (int): The ID of the node for which predictions are required.
+
+        Returns:
+            torch.Tensor: The output probabilities for the specific node.
+        """
+        x, edge_index, n2v = batch.x, batch.edge_index, batch.n2v
+        if self.with_n2v:
+            x = torch.cat([x, n2v], dim=1)
+
+        pre_mlp_x = [x]
+        for i in range(len(self.gnn_layers)):
+            x = self.gnn_layers[i](x, edge_index)
+            if self.norm_layers:
+                x = self.norm_layers[i](x)
+            if self.dropout_layers:
+                x = self.dropout_layers[i](x)
+            x = self.act(x)
+            pre_mlp_x.append(x)
+
+        # Concatenate layer outputs and pass through MLP
+        x_concat = torch.cat(pre_mlp_x, dim=1)
+        x_out = self.mlp(x_concat)
+
+        # Return the softmax probabilities for the specific node
+        return torch.softmax(x_out[node_id], dim=0)
