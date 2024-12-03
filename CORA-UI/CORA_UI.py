@@ -1,65 +1,80 @@
-from PyQt5 import QtWidgets, uic
-from PyQt5.QtGui import QColor
+from PyQt5 import QtWidgets, uic, QtGui
+from PyQt5.QtGui import QColor, QTextCharFormat
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QListWidgetItem
-import Feature_Extraction as FE
 import pandas as pd
 import requests
+import Feature_Extraction as FE
+
+global Abstract, saved_citations
+Abstract = ""
+saved_citations = []
 
 def call_api(feature_vector, citations, api_url="http://127.0.0.1:5000/predict"):
     """
     Calls the prediction API with a given feature vector and citations.
-
-    Args:
-        feature_vector (list): The feature vector of the new node.
-        citations (list): List of node IDs (connections) for the new node.
-        api_url (str): The URL of the API endpoint.
-
-    Returns:
-        dict: The API response containing predictions or an error message.
     """
     payload = {
         "feature_vector": feature_vector,
         "connections": citations
     }
     try:
-        response = requests.post(api_url, json=payload)
+        response = requests.post(api_url, json=payload, timeout=10)
         response.raise_for_status()
         return response.json()
+    except requests.ConnectionError:
+        return {"error": "Could not connect to API. Is the server running?"}
+    except requests.Timeout:
+        return {"error": "The API request timed out."}
     except requests.exceptions.RequestException as e:
-        return {"error": str(e)}
+        return {"error": f"API request failed: {e}"}
 
 def map_citations_to_legitimate_titles_from_csv(citations, csv_file_path):
     """
     Maps the citation fake names to their legitimate titles using a CSV file.
     """
-    nodes_with_legitimate_titles_df = pd.read_csv(csv_file_path)
-    fake_name_to_legit_title = dict(zip(nodes_with_legitimate_titles_df["Fake Name"], nodes_with_legitimate_titles_df["Top Paper Title"]))
-    return {citation: fake_name_to_legit_title.get(citation, "Unknown Title") for citation in citations}
-
+    try:
+        nodes_with_legitimate_titles_df = pd.read_csv(csv_file_path)
+    except Exception as e:
+        log_message(f"Error reading CSV: {e}", color="red")
+        return {}
+    
+    fake_name_to_legit_title = dict(zip(
+        nodes_with_legitimate_titles_df.get("Fake Name", []),
+        nodes_with_legitimate_titles_df.get("Top Paper Title", [])
+    ))
+    return {
+        citation: fake_name_to_legit_title.get(citation, "Unknown Title")
+        for citation in citations
+    }
 
 def log_message(message, color="white"):
     """Add a message to the log box."""
-    dlg.log_box.setTextColor(QColor(color))
+    fmt = QTextCharFormat()
+    fmt.setForeground(QColor(color))
+    dlg.log_box.setCurrentCharFormat(fmt)
     dlg.log_box.append(message)
 
-def save_paper():
+def save_abstract():
     """Save the paper abstract."""
-    abstract = dlg.textEdit.toPlainText().strip()
-    if abstract:
-        dlg.textEdit.setPlainText("")
-        log_message("Paper Abstract: " + abstract, color="blue")
-    else:
-        log_message("EMPTY STRING ENTERED", color="red")
-
-def clear_paper():
-    """Clear the paper abstract."""
+    global Abstract
+    Abstract = dlg.textEdit.toPlainText().strip()
+    if not Abstract:
+        log_message("Error: Abstract cannot be empty.", color="red")
+        return
     dlg.textEdit.setPlainText("")
+    log_message("Paper Abstract saved: " + Abstract, color="blue")
+
+def clear_abstract():
+    """Clear the paper abstract."""
+    global Abstract
+    dlg.textEdit.setPlainText("")
+    Abstract = ""
     log_message("Paper Abstract cleared.", color="blue")
-    log_message("Try Again: ", color="blue")
 
 def save_citations(legit_citations):
-    """Save selected, checked, and entered citations."""
+    """Save selected, checked, and entered citations, and uncheck all checkboxes."""
+    global saved_citations
     saved_citations = []
     for i in range(dlg.listWidget.count()):
         item = dlg.listWidget.item(i)
@@ -70,6 +85,8 @@ def save_citations(legit_citations):
                     paper_id = key.split("_")[-1]
                     saved_citations.append(int(paper_id))
                     break
+            # Uncheck the checkbox
+            item.setCheckState(Qt.Unchecked)
     entered_text = dlg.lineEdit_2.text().strip()
     if entered_text:
         for key, value in legit_citations.items():
@@ -83,7 +100,6 @@ def save_citations(legit_citations):
         log_message(str(saved_citations))
     else:
         log_message("INVALID Citations!", color="red")
-    return saved_citations
 
 def mark_searched_item(text):
     """Mark the searched item in the QListWidget."""
@@ -94,13 +110,29 @@ def mark_searched_item(text):
         else:
             item.setSelected(False)
 
+def clear_log_box():
+    """
+    Clears the content of the log box.
+    """
+    dlg.log_box.clear()
+    log_message("Log box cleared.", color="blue")
+
+
 def make_api_call():
-    """Process the abstract and call the API."""
-    abstract = dlg.textEdit.toPlainText().strip()
-    feature_vector = FE.process_abstract(abstract)
-    saved_citations = save_citations(legit_citations)
-    api_url = "http://127.0.0.1:5000/predict"
-    response = call_api(feature_vector, saved_citations, api_url)
+    """Call the API with the saved citations and feature vector."""
+    global Abstract, saved_citations
+    if not Abstract:
+        log_message("Error: Abstract is not saved. Cannot make API call.", color="red")
+        return
+    if not saved_citations:
+        log_message("Error: No citations selected. Cannot make API call.", color="red")
+        return
+    
+    feature_vector = FE.process_abstract(Abstract)
+    # log_message(f"Making API call with feature vector: {feature_vector}", color="yellow")
+    # log_message(f"Using citations: {saved_citations}", color="yellow")
+    # log_message(str(sum(feature_vector)))
+    response = call_api(feature_vector, saved_citations)
     if "predictions" in response:
         log_message("Predictions: " + str(response["predictions"]), color="green")
     else:
@@ -114,9 +146,9 @@ def main():
     dlg.textEdit.setPlaceholderText("Enter Paper Abstract")
     dlg.lineEdit_2.setPlaceholderText("Search for a citation...")
     dlg.log_box.setReadOnly(True)
-    dlg.log_box.setPlaceholderText("Log messages will appear here...")
     dlg.listWidget.setSelectionMode(QtWidgets.QListWidget.MultiSelection)
-    citations=[
+    
+    citations = [
     "Paper_CaseBased_1420",
     "Paper_CaseBased_2415",
     "Paper_CaseBased_2338",
@@ -187,8 +219,7 @@ def main():
     "Paper_Theory_1671",
     "Paper_Theory_2080",
     "Paper_Theory_1339"
-]
-    
+    ]
     global legit_citations
     legit_citations = map_citations_to_legitimate_titles_from_csv(
         citations, r"C:\\Users\\mersh\\OneDrive\\Desktop\\CoraProject\\CORA-UI\\Nodes_with_Legitimate_Titles.csv"
@@ -200,16 +231,14 @@ def main():
         dlg.listWidget.addItem(item)
 
     # Connect buttons to actions
-    dlg.pushButton_2.clicked.connect(save_paper)
-    dlg.pushButton.clicked.connect(clear_paper)
-    dlg.pushButton_3.clicked.connect(make_api_call)
+    dlg.pushButton_2.clicked.connect(save_abstract)
+    dlg.pushButton.clicked.connect(clear_abstract)
+    dlg.pushButton_3.clicked.connect(lambda: save_citations(legit_citations))  # Save citations and uncheck boxes
+    dlg.pushButton_4.clicked.connect(make_api_call)  # Make API call
     dlg.lineEdit_2.textChanged.connect(lambda: mark_searched_item(dlg.lineEdit_2.text()))
-
+    dlg.pushButton_5.clicked.connect(clear_log_box)
     dlg.show()
     app.exec()
 
 if __name__ == "__main__":
     main()
-
-
-    

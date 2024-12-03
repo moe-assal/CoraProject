@@ -172,9 +172,9 @@
     <property name="geometry">
      <rect>
       <x>720</x>
-      <y>430</y>
+      <y>70</y>
       <width>391</width>
-      <height>321</height>
+      <height>271</height>
      </rect>
     </property>
     <property name="styleSheet">
@@ -191,7 +191,7 @@
     <property name="geometry">
      <rect>
       <x>720</x>
-      <y>400</y>
+      <y>40</y>
       <width>121</width>
       <height>21</height>
      </rect>
@@ -309,6 +309,33 @@
     border-radius: 5px; /* Optional rounded corners */
 }
 </string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_5">
+    <property name="geometry">
+     <rect>
+      <x>960</x>
+      <y>20</y>
+      <width>141</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Cooper Black</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">#pushButton_5 {
+    background-color: rgb(57, 200, 148); /* Button background color */
+    color: rgb(0, 0, 0); /* Text color */
+    border: 1px solid black; /* Optional border styling */
+    border-radius: 5px; /* Optional rounded corners */
+}</string>
+    </property>
+    <property name="text">
+     <string>Clear</string>
     </property>
    </widget>
   </widget>
