@@ -70,7 +70,7 @@ def generate_binary_feature_vector(abstract, vector_length, word_to_index):
 
     matched_words = []
     for token in tokens:
-        if token in word_to_index or (token + 's') in word_to_index:
+        if token in word_to_index or token[:-1] in word_to_index:
             feature_vector[word_to_index[token]] = 1
             matched_words.append(token)
 
